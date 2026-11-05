@@ -1,4 +1,4 @@
-# ImaraChat Backend
+# Imarachat
 
 FastAPI service for ImaraChat with DoveORM, JWT device sessions and a
 Socket.IO realtime one-to-one (P2P) chat API.
