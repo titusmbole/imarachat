@@ -1,0 +1,266 @@
+{#
+  Signed-in conversation screen: chat list on the left, the open
+  conversation on the right. On phones only one pane shows at a time,
+  driven by data-pane="list" | "chat" on #chat-view (see chat.js).
+#}
+<section
+  id="chat-view"
+  data-pane="list"
+  class="group/chat relative z-10 hidden h-[calc(100dvh-4rem)] min-h-0"
+  aria-label="Chats"
+>
+  <div class="flex h-full w-full min-w-0">
+
+    {# ── Chat list ─────────────────────────────────────────────── #}
+    <aside
+      data-chat-sidebar
+      class="flex w-full min-w-0 flex-col border-r border-black/5 bg-white max-md:group-data-[pane=chat]/chat:hidden md:w-[340px] md:shrink-0 lg:w-[400px]"
+    >
+      <div class="flex h-16 shrink-0 items-center justify-between gap-2 px-4">
+        <h2 class="min-w-0 truncate text-xl font-extrabold tracking-tight">Chats</h2>
+        <div class="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            data-new-chat
+            aria-label="New chat"
+            aria-haspopup="dialog"
+            title="New chat"
+            class="grid size-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            {{ ui.icon("new-chat", "size-[22px]") }}
+          </button>
+          <div class="relative">
+            <button
+              type="button"
+              data-me-toggle
+              aria-label="Account"
+              aria-haspopup="dialog"
+              class="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <span data-me-avatar class="shrink-0"></span>
+              <span class="text-sm font-semibold text-ink">You</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="shrink-0 px-3 pb-2">
+        <label class="group relative block">
+          <span class="sr-only">Search chats</span>
+          <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-brand">
+            {{ ui.icon("search", "size-[18px]") }}
+          </span>
+          <input
+            id="chat-search"
+            type="search"
+            placeholder="Search chats"
+            autocomplete="off"
+            spellcheck="false"
+            class="block h-10 w-full rounded-xl border-0 bg-slate-100 pl-10 pr-3 text-sm text-ink outline-none transition placeholder:text-slate-500 focus:bg-white focus:ring-2 focus:ring-brand/40"
+          >
+        </label>
+      </div>
+
+      <div data-chat-list-scroll class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <ul data-chat-list aria-label="Conversations"></ul>
+        <div data-chat-list-empty class="hidden px-6 py-10 text-center text-sm text-slate-500"></div>
+      </div>
+    </aside>
+
+    {# ── Conversation ──────────────────────────────────────────── #}
+    <section
+      data-conversation
+      class="hidden min-w-0 flex-1 flex-col max-md:group-data-[pane=chat]/chat:flex md:flex"
+      aria-label="Conversation"
+    >
+      {# Nothing selected (tablet / desktop only) #}
+      <div data-conversation-empty class="m-auto flex max-w-sm flex-col items-center px-6 text-center">
+        <span class="grid size-20 place-items-center rounded-full bg-white/80 text-brand shadow-sm ring-1 ring-black/5">
+          {{ ui.icon("chats", "size-10") }}
+        </span>
+        <h2 class="mt-5 text-xl font-bold tracking-tight">Your conversations</h2>
+        <p class="mt-1.5 text-sm text-slate-600">Pick a chat from the list, or start a new one.</p>
+      </div>
+
+      <div data-conversation-active class="hidden h-full min-h-0 flex-col">
+        <header class="flex h-16 shrink-0 items-center gap-3 border-b border-black/5 bg-white/95 px-2 backdrop-blur sm:px-4">
+          <button
+            type="button"
+            data-conversation-back
+            aria-label="Back to chats"
+            class="grid size-10 shrink-0 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand md:hidden"
+          >
+            {{ ui.icon("arrow-left") }}
+          </button>
+          <span data-peer-avatar class="relative shrink-0"></span>
+          <div class="min-w-0 flex-1 leading-tight">
+            <h2 data-peer-name class="truncate text-[15px] font-semibold"></h2>
+            <p data-peer-status class="truncate text-xs text-slate-500" aria-live="polite"></p>
+          </div>
+
+          {# Chat actions #}
+          <div class="relative shrink-0">
+            <button
+              type="button"
+              data-chat-menu-toggle
+              aria-label="Chat actions"
+              aria-haspopup="menu"
+              aria-controls="chat-menu"
+              aria-expanded="false"
+              class="grid size-10 place-items-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand aria-expanded:bg-slate-100"
+            >
+              {{ ui.icon("more", "size-6") }}
+            </button>
+            <div
+              id="chat-menu"
+              data-chat-menu
+              role="menu"
+              aria-label="Chat actions"
+              class="invisible absolute right-0 top-full z-30 mt-1 w-56 origin-top-right -translate-y-1 scale-95 rounded-2xl bg-white p-1.5 opacity-0 shadow-xl ring-1 ring-black/5 transition duration-150 data-[open=true]:visible data-[open=true]:translate-y-0 data-[open=true]:scale-100 data-[open=true]:opacity-100"
+            >
+              <button type="button" role="menuitem" tabindex="-1" data-chat-action="close" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] font-medium text-ink transition hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none">
+                <span class="text-slate-500">{{ ui.icon("x", "size-5") }}</span>
+                Close chat
+              </button>
+              <button type="button" role="menuitem" tabindex="-1" data-chat-action="delete" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] font-medium text-rose-600 transition hover:bg-rose-50 focus-visible:bg-rose-50 focus-visible:outline-none">
+                <span>{{ ui.icon("trash", "size-5") }}</span>
+                Delete chat
+              </button>
+              <div class="my-1 h-px bg-slate-100" role="separator"></div>
+              <button type="button" role="menuitem" tabindex="-1" data-chat-action="logout" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] font-medium text-ink transition hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none">
+                <span class="text-slate-500">{{ ui.icon("logout", "size-5") }}</span>
+                Log out
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div class="relative min-h-0 flex-1">
+          <div data-messages-scroll class="h-full overflow-y-auto overscroll-contain px-2 py-4 sm:px-4 lg:px-6">
+            <div data-messages-top class="flex h-8 items-center justify-center text-xs text-slate-500"></div>
+            <ol data-messages class="flex flex-col" aria-label="Messages"></ol>
+          </div>
+
+          <div data-drop-zone class="pointer-events-none absolute inset-3 z-20 hidden place-items-center rounded-2xl border-2 border-dashed border-brand bg-white/85 text-center backdrop-blur-sm">
+            <p class="text-sm font-semibold text-brand-dark">Drop files to send</p>
+          </div>
+
+          <button
+            type="button"
+            data-jump-bottom
+            aria-label="Scroll to latest messages"
+            class="absolute bottom-4 right-4 hidden size-10 place-items-center rounded-full bg-white text-slate-600 shadow-md ring-1 ring-black/5 transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            {{ ui.icon("chevron-down") }}
+            <span data-jump-count class="absolute -top-1.5 -right-1 hidden min-w-5 rounded-full bg-[#25d366] px-1.5 text-center text-[11px] font-bold leading-5 text-white"></span>
+          </button>
+        </div>
+
+        <div data-composer-area class="relative shrink-0 bg-[#f0f2f5] pb-[env(safe-area-inset-bottom)]">
+          {# Files picked but not sent yet #}
+          <div data-attach-tray class="hidden border-t border-black/5 px-3 pt-3 sm:px-4" aria-label="Attachments to send">
+            <div class="flex items-center justify-between">
+              <p data-attach-summary class="text-xs font-medium text-slate-600"></p>
+              <button type="button" data-attach-clear class="rounded-full px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-black/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">Clear</button>
+            </div>
+            <ul data-attach-list class="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 pt-2"></ul>
+            <p data-attach-error class="hidden pt-1 text-xs font-medium text-rose-600" role="alert"></p>
+          </div>
+
+          {# Emoji picker #}
+          <div data-emoji-panel class="hidden border-t border-black/5 bg-white" role="dialog" aria-label="Emoji">
+            <div class="flex items-center gap-1 overflow-x-auto border-b border-slate-100 px-2" role="tablist" aria-label="Emoji categories" data-emoji-tabs></div>
+            <div data-emoji-grid class="grid h-56 grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] content-start gap-0.5 overflow-y-auto p-2"></div>
+          </div>
+
+          {# "+" menu #}
+          <div
+            data-attach-menu
+            id="attach-menu"
+            role="menu"
+            aria-label="Attach"
+            class="invisible absolute bottom-full left-2 z-20 mb-2 w-60 origin-bottom-left translate-y-2 scale-95 rounded-2xl bg-white p-1.5 opacity-0 shadow-xl ring-1 ring-black/5 transition duration-150 data-[open=true]:visible data-[open=true]:translate-y-0 data-[open=true]:scale-100 data-[open=true]:opacity-100 sm:left-4"
+          >
+            {% for key, label, icon_name, color, extra in [
+              ("document", "Document", "document", "bg-violet-500", ""),
+              ("media", "Photos & videos", "photo", "bg-sky-500", ""),
+              ("camera", "Camera", "camera", "bg-rose-500", "pointer-fine:hidden"),
+              ("emoji", "Emoji", "smile", "bg-amber-400", ""),
+            ] %}
+            <button
+              type="button"
+              role="menuitem"
+              tabindex="-1"
+              data-attach-action="{{ key }}"
+              class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[15px] font-medium text-ink transition hover:bg-slate-50 focus-visible:bg-slate-100 focus-visible:outline-none {{ extra }}"
+            >
+              <span class="grid size-9 place-items-center rounded-full text-white {{ color }}">{{ ui.icon(icon_name, "size-5") }}</span>
+              {{ label }}
+            </button>
+            {% endfor %}
+          </div>
+
+          <input type="file" id="attach-media" accept="image/*,video/*" multiple hidden>
+          <input type="file" id="attach-camera" accept="image/*" capture="environment" hidden>
+          <input type="file" id="attach-document" multiple hidden>
+
+          <form data-composer class="flex items-end gap-1.5 px-2 py-2 sm:gap-2 sm:px-4" autocomplete="off">
+            <button
+              type="button"
+              data-attach-toggle
+              aria-label="Attach"
+              aria-haspopup="menu"
+              aria-controls="attach-menu"
+              aria-expanded="false"
+              class="group grid size-11 shrink-0 place-items-center rounded-full text-slate-600 transition hover:bg-black/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand aria-expanded:bg-black/5 aria-expanded:text-ink"
+            >
+              <span class="transition-transform duration-200 group-aria-expanded:rotate-45">{{ ui.icon("plus", "size-6") }}</span>
+            </button>
+            <label for="composer-input" class="sr-only">Message</label>
+            <textarea
+              id="composer-input"
+              rows="1"
+              maxlength="10000"
+              placeholder="Type a message"
+              enterkeyhint="send"
+              class="block max-h-36 min-h-11 min-w-0 flex-1 resize-none rounded-2xl border-0 bg-white px-4 py-[11px] text-[15px] leading-[22px] text-ink shadow-sm outline-none placeholder:text-slate-500 focus:ring-2 focus:ring-brand/30"
+            ></textarea>
+            <button
+              type="submit"
+              data-composer-send
+              aria-label="Send message"
+              disabled
+              class="grid size-11 shrink-0 place-items-center rounded-full bg-brand text-white shadow-md shadow-brand/30 transition hover:bg-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:bg-slate-300 disabled:shadow-none"
+            >
+              {{ ui.icon("send", "size-5") }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <p data-chat-announcer class="sr-only" aria-live="polite"></p>
+</section>
+
+{# Full-screen photo / video viewer #}
+<dialog
+  id="media-viewer"
+  class="m-0 size-full max-h-none max-w-none bg-black/95 p-0 text-white backdrop:bg-black/80"
+  aria-label="Media viewer"
+>
+  <div class="flex h-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div class="flex h-14 shrink-0 items-center justify-between gap-2 px-3">
+      <p data-viewer-caption class="min-w-0 truncate text-sm text-white/80"></p>
+      <div class="flex shrink-0 items-center gap-1">
+        <a data-viewer-download href="#" download class="grid size-10 place-items-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Download">{{ ui.icon("download") }}</a>
+        <button type="button" data-viewer-close class="grid size-10 place-items-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Close">{{ ui.icon("x") }}</button>
+      </div>
+    </div>
+    <div class="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-6 sm:px-16">
+      <button type="button" data-viewer-prev class="absolute left-2 grid size-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:left-4" aria-label="Previous">{{ ui.icon("chevron-left") }}</button>
+      <div data-viewer-stage class="flex size-full items-center justify-center"></div>
+      <button type="button" data-viewer-next class="absolute right-2 grid size-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-4" aria-label="Next">{{ ui.icon("chevron-right") }}</button>
+    </div>
+  </div>
+</dialog>

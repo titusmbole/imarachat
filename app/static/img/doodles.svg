@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <g fill="none" stroke="#b9b1a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- chat bubble -->
+    <path d="M24 18h36a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8H40l-10 8v-8h-6a8 8 0 0 1-8-8V26a8 8 0 0 1 8-8z"/>
+    <path d="M30 32h24M30 40h16"/>
+    <!-- heart -->
+    <path d="M136 30c-4-8-16-8-16 2 0 8 16 16 16 16s16-8 16-16c0-10-12-10-16-2z"/>
+    <!-- phone -->
+    <rect x="194" y="12" width="24" height="40" rx="5"/>
+    <path d="M202 46h8"/>
+    <!-- camera -->
+    <path d="M30 108l4-6h12l4 6"/>
+    <rect x="18" y="108" width="44" height="30" rx="6"/>
+    <circle cx="40" cy="123" r="8"/>
+    <!-- smiley -->
+    <circle cx="120" cy="122" r="16"/>
+    <path d="M112 127q8 7 16 0"/>
+    <path d="M114 117h.01M126 117h.01" stroke-width="3.5"/>
+    <!-- paper plane -->
+    <path d="M178 126l40-18-14 40-8-14z"/>
+    <path d="M196 134l22-26"/>
+    <!-- microphone -->
+    <rect x="34" y="174" width="12" height="22" rx="6"/>
+    <path d="M28 190a12 12 0 0 0 24 0M40 202v8M34 210h12"/>
+    <!-- star -->
+    <path d="M125 184l4 10h11l-9 7 3 11-9-7-9 7 3-11-9-7h11z"/>
+    <!-- music note -->
+    <path d="M196 210v-28l18-4v26"/>
+    <circle cx="191" cy="210" r="5"/>
+    <circle cx="209" cy="204" r="5"/>
+    <!-- double tick -->
+    <path d="M78 82l5 5 9-10M88 85l2 2 9-10"/>
+    <!-- sparkles -->
+    <circle cx="166" cy="78" r="2.5"/>
+    <circle cx="84" cy="156" r="2.5"/>
+    <circle cx="166" cy="166" r="3"/>
+    <path d="M226 82v8M222 86h8M88 226v8M84 230h8"/>
+  </g>
+</svg>

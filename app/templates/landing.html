@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui %}
+
+{% block title %}{{ app_name }}{% endblock %}
+
+{% block head %}
+<style>
+  /* Dialog enter/exit: bottom sheet on phones, scale-in card from `sm` up. */
+  .auth-dialog[open] { animation: sheet-in .42s cubic-bezier(.16, 1, .3, 1); }
+  .auth-dialog.is-closing { animation: sheet-out .24s cubic-bezier(.4, 0, 1, 1) forwards; }
+  .auth-dialog[open]::backdrop { animation: fade-in .3s ease-out; }
+  .auth-dialog.is-closing::backdrop { animation: fade-out .24s ease-in forwards; }
+
+  @media (min-width: 640px) {
+    .auth-dialog[open] { animation-name: pop-in; }
+    .auth-dialog.is-closing { animation-name: pop-out; }
+  }
+
+  /* A chat is open: drop the top app bar and let the chat use the full height. */
+  #app:has([data-conversation-active]:not(.hidden)) > header { display: none; }
+  #app:has([data-conversation-active]:not(.hidden)) #chat-view { height: 100dvh; }
+
+  .auth-panel.is-entering { animation: panel-in .35s cubic-bezier(.16, 1, .3, 1); }
+  .is-shaking { animation: shake .4s cubic-bezier(.36, .07, .19, .97); }
+
+  @keyframes sheet-in  { from { transform: translateY(100%); } }
+  @keyframes sheet-out { to   { transform: translateY(100%); } }
+  @keyframes pop-in    { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+  @keyframes pop-out   { to   { opacity: 0; transform: translateY(8px) scale(.97); } }
+  @keyframes fade-in   { from { opacity: 0; } }
+  @keyframes fade-out  { to   { opacity: 0; } }
+  @keyframes panel-in  { from { opacity: 0; transform: translateX(var(--panel-from, 12px)); } }
+  @keyframes shake {
+    20%, 80% { transform: translateX(-2px); }
+    40%, 60% { transform: translateX(4px); }
+    50%      { transform: translateX(-4px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-dialog[open], .auth-dialog.is-closing,
+    .auth-dialog[open]::backdrop, .auth-dialog.is-closing::backdrop,
+    .auth-panel.is-entering, .is-shaking { animation: none !important; }
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="relative flex min-h-full flex-col bg-wallpaper" data-api="{{ api_prefix }}" id="app">
+  {# WhatsApp-style doodle wallpaper #}
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 bg-[length:240px_240px] bg-repeat opacity-45"
+    style="background-image: url('{{ url_for('static', path='img/doodles.svg') }}');"
+  ></div>
+
+  <header class="sticky top-0 z-20 border-b border-black/5 bg-white/80 backdrop-blur-md">
+    <div class="flex h-16 w-full items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
+      <a href="{{ url_for('landing') }}" class="group flex items-center gap-2.5" aria-label="{{ app_name }} home">
+        <img
+          src="{{ url_for('static', path='img/logo.svg') }}"
+          alt=""
+          class="size-8 rounded-xl shadow-sm shadow-brand/30 transition-transform group-hover:scale-105 sm:size-9"
+        >
+        <span class="text-lg font-extrabold tracking-tight sm:text-xl">
+          Imara<span class="text-brand">Chat</span>
+        </span>
+      </a>
+
+      {# Signed-out actions #}
+      <nav id="guest-actions" class="flex shrink-0 items-center gap-1.5 sm:gap-3" aria-label="Account">
+        <a
+          href="#login"
+          data-auth-open="login"
+          class="inline-flex h-9 items-center rounded-full px-3 text-[13px] font-semibold text-brand-dark ring-1 ring-brand/30 transition hover:bg-brand/5 hover:ring-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:h-10 sm:px-5 sm:text-sm"
+        >
+          Log in
+        </a>
+        <a
+          href="#get-started"
+          data-auth-open="register"
+          class="inline-flex h-9 items-center rounded-full bg-brand px-3 text-[13px] font-semibold text-white shadow-md shadow-brand/30 transition hover:-translate-y-px hover:bg-brand-dark hover:shadow-lg hover:shadow-brand/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 sm:h-10 sm:px-5 sm:text-sm"
+        >
+          Get started
+        </a>
+      </nav>
+
+      {# Signed-in user #}
+      <div id="user-actions" class="hidden shrink-0 items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-2.5 rounded-full bg-white py-1 pl-1 pr-3 shadow-sm ring-1 ring-black/5">
+          <span data-user-initials class="grid size-8 place-items-center rounded-full bg-gradient-to-br from-[#25d366] to-brand-dark text-xs font-bold text-white"></span>
+          <span class="hidden leading-tight sm:block">
+            <span data-user-name class="block max-w-40 truncate text-sm font-semibold"></span>
+            <span data-user-username class="block max-w-40 truncate text-xs text-slate-500"></span>
+          </span>
+        </div>
+        <button
+          type="button"
+          id="logout-button"
+          aria-label="Log out"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-slate-600 ring-1 ring-black/10 transition hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:h-10 sm:px-4 sm:text-sm"
+        >
+          {{ ui.icon("logout", "size-4") }}
+          <span class="hidden sm:inline">Log out</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10 flex flex-1 flex-col px-4 py-16">
+    {# Signed-out hero #}
+    <div id="guest-hero" class="relative m-auto grid place-items-center" role="img" aria-label="{{ app_name }}">
+      <span class="absolute size-full animate-ping rounded-full bg-brand/25 [animation-duration:2.8s] motion-reduce:hidden"></span>
+      <span class="absolute -inset-4 rounded-full bg-brand/10"></span>
+
+      <div class="relative grid size-32 place-items-center rounded-full bg-gradient-to-br from-[#25d366] to-brand-dark shadow-2xl shadow-brand/40 ring-8 ring-white/70 sm:size-40">
+        <svg viewBox="0 0 24 24" class="size-16 sm:size-20" aria-hidden="true">
+          <path fill="#fff" d="M12 3C6.75 3 2.5 6.8 2.5 11.5c0 2.3 1 4.4 2.7 5.9L4.5 21l4-1.9c1.1.4 2.3.6 3.5.6 5.25 0 9.5-3.8 9.5-8.2S17.25 3 12 3z"/>
+          <circle cx="8" cy="11.6" r="1.25" class="fill-brand"/>
+          <circle cx="12" cy="11.6" r="1.25" class="fill-brand"/>
+          <circle cx="16" cy="11.6" r="1.25" class="fill-brand"/>
+        </svg>
+      </div>
+    </div>
+
+    {# Signed in, while we find out whether the user has chats #}
+    <div id="session-loading" class="m-auto hidden" role="status">
+      <span class="block size-9 animate-spin rounded-full border-[3px] border-brand/20 border-t-brand"></span>
+      <span class="sr-only">Loading your chats…</span>
+    </div>
+
+    {# Signed-in with no chats yet: people to start chatting with #}
+    <section id="people-view" class="hidden flex-1 flex-col" aria-labelledby="people-title" aria-busy="true">
+      <div class="m-auto flex flex-col items-center text-center">
+        <h1 id="people-title" class="text-2xl font-extrabold tracking-tight sm:text-3xl">Start a chat</h1>
+        <p data-people-subtitle class="mt-2 max-w-xs text-sm text-slate-600 sm:text-base">
+          Finding people to talk to…
+        </p>
+
+        <ul
+          data-people-pills
+          class="mt-6 flex items-center justify-center -space-x-3"
+          aria-label="People you can chat with"
+        ></ul>
+      </div>
+    </section>
+  </main>
+
+  {% include "components/chat_view.html" %}
+</div>
+
+{% include "components/auth_modal.html" %}
+{% include "components/people_modal.html" %}
+{% include "components/account_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous" defer></script>
+<script src="{{ url_for('static', path='js/auth.js') }}" defer></script>
+<script src="{{ url_for('static', path='js/attachments.js') }}" defer></script>
+<script src="{{ url_for('static', path='js/chat.js') }}" defer></script>
+{% endblock %}

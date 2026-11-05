@@ -1,0 +1,101 @@
+{% import "components/ui.html" as ui %}
+
+<dialog
+  id="auth-dialog"
+  aria-labelledby="auth-title"
+  aria-describedby="auth-subtitle"
+  class="auth-dialog mb-0 mt-auto w-full max-w-none overflow-visible bg-transparent p-0 text-ink backdrop:bg-ink/40 backdrop:backdrop-blur-[2px] sm:m-auto sm:w-[calc(100%-2rem)] sm:max-w-md"
+>
+  <div class="relative max-h-[92dvh] overflow-y-auto rounded-t-[28px] bg-white px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl shadow-ink/20 ring-1 ring-black/5 sm:rounded-[28px] sm:px-8 sm:pb-8 sm:pt-8">
+    {# Grab handle (mobile bottom sheet) #}
+    <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-200 sm:hidden" aria-hidden="true"></div>
+
+    <button
+      type="button"
+      data-auth-close
+      aria-label="Close"
+      class="absolute right-4 top-4 grid size-9 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:right-5 sm:top-5"
+    >
+      {{ ui.icon("x", "size-5") }}
+    </button>
+
+    <header class="flex flex-col items-center text-center">
+      <img src="{{ url_for('static', path='img/logo.svg') }}" alt="" class="size-12 rounded-2xl shadow-lg shadow-brand/30">
+      <h2 id="auth-title" class="mt-4 text-2xl font-bold tracking-tight">Welcome back</h2>
+      <p id="auth-subtitle" class="mt-1 text-sm text-slate-500">Log in to continue your conversations.</p>
+    </header>
+
+    {# Segmented switch #}
+    <div role="tablist" aria-label="Account" class="relative mt-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 text-sm font-semibold">
+      <span
+        id="auth-tab-indicator"
+        aria-hidden="true"
+        class="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-300 ease-[cubic-bezier(.16,1,.3,1)]"
+      ></span>
+      <button type="button" role="tab" id="auth-tab-login" data-auth-tab="login" aria-controls="login-form" aria-selected="true"
+        class="relative z-10 h-10 rounded-xl text-ink transition-colors aria-[selected=false]:text-slate-500 aria-[selected=false]:hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+        Log in
+      </button>
+      <button type="button" role="tab" id="auth-tab-register" data-auth-tab="register" aria-controls="register-form" aria-selected="false" tabindex="-1"
+        class="relative z-10 h-10 rounded-xl text-ink transition-colors aria-[selected=false]:text-slate-500 aria-[selected=false]:hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+        Sign up
+      </button>
+    </div>
+
+    {# Server error banner #}
+    <div id="auth-alert" role="alert" class="mt-5 hidden items-start gap-2.5 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700 ring-1 ring-rose-200">
+      {{ ui.icon("alert", "mt-px size-5 shrink-0") }}
+      <span data-message></span>
+    </div>
+
+    {# Log in #}
+    <form id="login-form" data-auth-form="login" role="tabpanel" aria-labelledby="auth-tab-login" novalidate class="auth-panel mt-5 space-y-3.5">
+      {{ ui.field("login-identifier", "identifier", "Username or email", icon_name="at", autocomplete="username", maxlength=254) }}
+      {{ ui.field("login-password", "password", "Password", type="password", icon_name="lock", autocomplete="current-password", maxlength=72) }}
+      {{ ui.submit_button("Log in", "Logging in…") }}
+    </form>
+
+    {# Sign up #}
+    <form id="register-form" data-auth-form="register" role="tabpanel" aria-labelledby="auth-tab-register" novalidate hidden class="auth-panel mt-5 space-y-3.5">
+      {{ ui.field("register-name", "name", "Full name", icon_name="user", autocomplete="name", maxlength=120) }}
+      {{ ui.field("register-username", "username", "Username", icon_name="at", autocomplete="username", maxlength=50, hint="Letters, numbers and . _ - (3–50 characters)") }}
+      {{ ui.field("register-email", "email", "Email", type="email", icon_name="mail", autocomplete="email", maxlength=254, inputmode="email") }}
+      <div>
+        {{ ui.field("register-password", "password", "Password", type="password", icon_name="lock", autocomplete="new-password", maxlength=72) }}
+        <div id="password-strength" class="mt-2.5 hidden px-1" aria-live="polite">
+          <div class="grid grid-cols-4 gap-1.5">
+            <span data-bar class="h-1.5 rounded-full bg-slate-200 transition-colors duration-300"></span>
+            <span data-bar class="h-1.5 rounded-full bg-slate-200 transition-colors duration-300"></span>
+            <span data-bar class="h-1.5 rounded-full bg-slate-200 transition-colors duration-300"></span>
+            <span data-bar class="h-1.5 rounded-full bg-slate-200 transition-colors duration-300"></span>
+          </div>
+          <p data-strength-label class="mt-1.5 text-xs text-slate-500"></p>
+        </div>
+      </div>
+      {{ ui.submit_button("Create account", "Creating account…") }}
+      <p class="pt-1 text-center text-xs leading-relaxed text-slate-400">
+        By creating an account you agree to use ImaraChat respectfully.
+      </p>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-slate-500">
+      <span id="auth-switch-text">New to ImaraChat?</span>
+      <button type="button" id="auth-switch" class="font-semibold text-brand-dark underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded">
+        Create an account
+      </button>
+    </p>
+  </div>
+</dialog>
+
+{# Toast #}
+<div
+  id="toast"
+  role="status"
+  aria-live="polite"
+  class="pointer-events-none fixed inset-x-0 bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-50 flex translate-y-4 justify-center px-4 opacity-0 transition duration-300 ease-[cubic-bezier(.16,1,.3,1)]"
+>
+  <div class="flex items-center gap-2.5 rounded-2xl bg-ink px-4 py-3 text-sm font-medium text-white shadow-2xl shadow-ink/30">
+    <span class="text-[#25d366]">{{ ui.icon("check", "size-5") }}</span>
+    <span data-message></span>
+  </div>
+</div>

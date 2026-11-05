@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#00a884">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='img/logo.svg') }}">
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-brand: #00a884;
+      --color-brand-dark: #008069;
+      --color-ink: #111b21;
+      --color-wallpaper: #efeae2;
+      --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+  <style>
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body { overflow-x: hidden; }
+    /* iOS Safari zooms the page when a focused field is under 16px. */
+    @media (pointer: coarse) {
+      input, textarea, select { font-size: 16px; }
+    }
+    /* Keep content clear of notches / rounded corners in landscape. */
+    @supports (padding: max(0px)) {
+      body {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  {% block head %}{% endblock %}
+</head>
+<body class="h-full font-sans text-ink antialiased {% block body_class %}{% endblock %}">
+  {% block body %}{% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>
