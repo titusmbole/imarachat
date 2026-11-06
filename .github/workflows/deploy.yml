@@ -37,6 +37,8 @@ jobs:
             docker stop imarachat || true
             docker rm imarachat || true
             docker run -d --name imarachat --restart unless-stopped -p 127.0.0.1:6766:8000 \
+              --add-host=host.docker.internal:host-gateway \
+              -e DATABASE_HOST=host.docker.internal \
               --env-file /home/administrator/files/.env-corechat \
               -v /home/administrator/files/uploads:/app/uploads \
               ${{ secrets.DOCKER_USERNAME }}/imarachat:latest
