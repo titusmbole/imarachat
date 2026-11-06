@@ -36,7 +36,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/imarachat:latest
             docker stop imarachat || true
             docker rm imarachat || true
-            docker run -d --name imarachat --network host -p 6766:8000 \
+            docker run -d --name imarachat --restart unless-stopped -p 127.0.0.1:6766:8000 \
               --env-file /home/administrator/files/.env-corechat \
               -v /home/administrator/files/uploads:/app/uploads \
               ${{ secrets.DOCKER_USERNAME }}/imarachat:latest
