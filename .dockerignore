@@ -1,0 +1,16 @@
+.git/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+*.db
+*.sqlite3
+*.db-shm
+*.db-wal
+.DS_Store
+uploads/
+.pytest_cache/
+.ruff_cache/
+.idea/
+.vscode/
