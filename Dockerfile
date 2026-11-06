@@ -19,14 +19,20 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Runtime system packages
+# MySQL client dev libraries + build tools are required for the mysqlclient driver.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        default-libmysqlclient-dev \
+        pkg-config \
+        build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Python dependencies (cached in their own layer)
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir "doveorm[mysql]==0.8.0"
 
 # Application code
 COPY app ./app
